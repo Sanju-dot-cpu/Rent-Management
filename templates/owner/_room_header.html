@@ -1,0 +1,22 @@
+<div class="room-header">
+    <div class="room-header-item">
+        <label>Room No</label>
+        <span>{{ room.room_no }}</span>
+    </div>
+    <div class="room-header-item">
+        <label>Renter Name</label>
+        <span>{{ room.renter_name }}</span>
+    </div>
+    <div class="room-header-item">
+        <label>Arriving Date</label>
+        <span>{{ room.arriving_date }}</span>
+    </div>
+    <div class="room-header-item">
+        <label>Advance Booking Amount</label>
+        <span>₹{{ room.advance_booking_amount }}</span>
+    </div>
+    <div class="room-header-item">
+        <label>First Electricity Reading</label>
+        <span>{{ room.first_reading or '-' }}</span>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ room.room_no }} — Details{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/room.css') }}">
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('owner.dashboard') }}" class="back-link">← Back to Dashboard</a>
+
+{% include "owner/_room_header.html" %}
+
+<div class="tabs">
+    <button class="tab-btn active" data-tab="audit">Room Audit</button>
+    <button class="tab-btn" data-tab="electricity">Electricity Bill</button>
+</div>
+
+<div id="audit" class="tab-content active">
+    {% include "owner/_audit_tab.html" %}
+</div>
+
+<div id="electricity" class="tab-content">
+    {% include "owner/_electricity_tab.html" %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const ROOM_ID = {{ room.id }};
+</script>
+<script src="{{ url_for('static', filename='js/room_tabs.js') }}"></script>
+<script src="{{ url_for('static', filename='js/audit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/electricity.js') }}"></script>
+{% endblock %}

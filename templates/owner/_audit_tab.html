@@ -1,0 +1,67 @@
+<div class="tab-header">
+    <h2>Room Audit</h2>
+    <div class="tab-actions">
+        <button class="btn-secondary" onclick="downloadAuditPdf()">⬇ PDF</button>
+        <button class="btn-primary" onclick="openAddAuditModal()">+ Add Rent Entry</button>
+    </div>
+</div>
+
+<div class="table-wrap">
+<table class="data-table" id="auditTable">
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Amount</th>
+            <th>Paid Date</th>
+            <th>Balance Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="auditBody">
+        <tr><td colspan="8" class="loading">Loading...</td></tr>
+    </tbody>
+</table>
+</div>
+
+<div id="auditModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAuditModal()">&times;</span>
+        <h2 id="auditModalTitle">Add Rent Entry</h2>
+        <div id="auditError" class="error-msg" style="display:none;"></div>
+
+        <form id="auditForm">
+            <input type="hidden" id="audit_id">
+            <div class="form-group">
+                <label>Month</label>
+                <input type="text" id="audit_month" placeholder="e.g. Jan" required>
+            </div>
+            <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" id="audit_start_date" required>
+            </div>
+            <div class="form-group">
+                <label>Amount</label>
+                <input type="number" step="0.01" id="audit_amount" required>
+            </div>
+            <div class="form-group">
+                <label>Paid Date</label>
+                <input type="date" id="audit_paid_date">
+            </div>
+            <div class="form-group">
+                <label>Balance Amount</label>
+                <input type="number" step="0.01" id="audit_balance_amount" value="0">
+            </div>
+            <div class="form-group">
+                <label>Paid / Pending</label>
+                <select id="audit_status" required>
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Save</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Add Room{% endblock %}
+
+{% block content %}
+<h1>Add Room</h1>
+<p>Use the dashboard modal to add a room, or use this standalone form.</p>
+
+<form id="standaloneAddRoomForm" class="standalone-form">
+    <div class="form-group">
+        <label>Room No</label>
+        <input type="text" id="sr_room_no" required>
+    </div>
+    <div class="form-group">
+        <label>Renter Name</label>
+        <input type="text" id="sr_renter_name" required>
+    </div>
+    <div class="form-group">
+        <label>Arriving Date</label>
+        <input type="date" id="sr_arriving_date" required>
+    </div>
+    <div class="form-group">
+        <label>Advance Booking Amount</label>
+        <input type="number" step="0.01" id="sr_advance_booking_amount" required>
+    </div>
+    <button type="submit" class="btn-primary">Save</button>
+</form>
+
+<script>
+document.getElementById("standaloneAddRoomForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {
+        room_no: document.getElementById("sr_room_no").value,
+        renter_name: document.getElementById("sr_renter_name").value,
+        arriving_date: document.getElementById("sr_arriving_date").value,
+        advance_booking_amount: document.getElementById("sr_advance_booking_amount").value
+    };
+    const res = await apiPost("/owner/room/api/add", body);
+    if (res.success) {
+        alert("Room added");
+        window.location.href = "/owner/dashboard";
+    } else {
+        alert(res.message);
+    }
+});
+</script>
+{% endblock %}

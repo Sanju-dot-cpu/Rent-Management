@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Update Profile{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('owner.dashboard') }}" class="back-link">← Back to Dashboard</a>
+
+<h1>Update Profile</h1>
+
+<div class="standalone-form">
+    <div id="profileError" class="error-msg" style="display:none;"></div>
+    <div id="profileSuccess" class="error-msg" style="display:none;background:#dcfce7;color:#166534;"></div>
+
+    <form id="profileForm">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="prof_username" required>
+        </div>
+        <div class="form-group">
+            <label>Old Password</label>
+            <input type="password" id="prof_old_password" required>
+        </div>
+        <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="prof_new_password" required>
+        </div>
+        <button type="submit" class="btn-primary">Save</button>
+    </form>
+</div>
+
+<script>
+async function loadProfile() {
+    const res = await apiGet("/owner/api/profile");
+    if (res.success) {
+        document.getElementById("prof_username").value = res.data.username;
+    }
+}
+
+document.getElementById("profileForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errBox = document.getElementById("profileError");
+    const okBox = document.getElementById("profileSuccess");
+    errBox.style.display = "none";
+    okBox.style.display = "none";
+
+    const body = {
+        username: document.getElementById("prof_username").value.trim(),
+        old_password: document.getElementById("prof_old_password").value,
+        new_password: document.getElementById("prof_new_password").value
+    };
+
+    const res = await apiPost("/owner/api/profile/update", body);
+    if (res.success) {
+        okBox.textContent = "Profile updated. Please login again.";
+        okBox.style.display = "block";
+        setTimeout(() => navigateTo("/logout"), 1500);
+    } else {
+        errBox.textContent = res.message;
+        errBox.style.display = "block";
+    }
+});
+
+loadProfile();
+</script>
+{% endblock %}

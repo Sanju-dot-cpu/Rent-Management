@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Manage Renters{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('owner.dashboard') }}" class="back-link">← Back to Dashboard</a>
+
+<div class="page-header">
+    <h1>Manage Renters</h1>
+    <div class="header-actions">
+        <button class="btn-primary" onclick="openAddRenterModal()">+ Add Renter</button>
+    </div>
+</div>
+
+<div class="table-wrap">
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Renter Name</th>
+            <th>Username</th>
+            <th>Room No</th>
+            <th>Password</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="rentersBody">
+        <tr><td colspan="5" class="loading">Loading...</td></tr>
+    </tbody>
+</table>
+</div>
+
+<div id="renterModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeRenterModal()">&times;</span>
+        <h2 id="renterModalTitle">Add Renter</h2>
+        <div id="renterError" class="error-msg" style="display:none;"></div>
+
+        <form id="renterForm">
+            <input type="hidden" id="renter_id">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="renter_username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="text" id="renter_password" required>
+            </div>
+            <div class="form-group">
+                <label>Room No</label>
+                <select id="renter_room_id" required>
+                    <option value="">-- Select Room --</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Save</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let ROOMS_CACHE = [];
+
+async function loadRooms() {
+    const res = await apiGet("/owner/room/api/list");
+    if (res.success) {
+        ROOMS_CACHE = res.data;
+        const sel = document.getElementById("renter_room_id");
+        sel.innerHTML = '<option value="">-- Select Room --</option>' +
+            res.data.map(r => `<option value="${r.id}">${r.room_no} — ${r.renter_name}</option>`).join("");
+    }
+}
+
+async function loadRenters() {
+    const res = await apiGet("/owner/room/api/renters");
+    const body = document.getElementById("rentersBody");
+    if (!res.success || !res.data.length) {
+        body.innerHTML = '<tr><td colspan="5" class="loading">No renters yet.</td></tr>';
+        return;
+    }
+    body.innerHTML = res.data.map(r => {
+        const room = ROOMS_CACHE.find(x => x.id === r.room_id);
+        const roomLabel = room ? room.room_no : "-";
+        const renterName = room ? room.renter_name : "-";
+        return `
+        <tr>
+            <td>${renterName}</td>
+            <td>${r.username}</td>
+            <td>${roomLabel}</td>
+            <td>${r.password}</td>
+            <td>
+                <button class="btn-small" onclick='editRenter(${JSON.stringify(r)})'>Edit</button>
+                <button class="btn-small btn-danger" onclick="deleteRenter(${r.id})">Delete</button>
+            </td>
+        </tr>`;
+    }).join("");
+}
+
+function openAddRenterModal() {
+    document.getElementById("renterModalTitle").textContent = "Add Renter";
+    document.getElementById("renterForm").reset();
+    document.getElementById("renter_id").value = "";
+    document.getElementById("renterError").style.display = "none";
+    document.getElementById("renterModal").style.display = "flex";
+}
+
+function closeRenterModal() {
+    document.getElementById("renterModal").style.display = "none";
+}
+
+function editRenter(r) {
+    document.getElementById("renterModalTitle").textContent = "Edit Renter";
+    document.getElementById("renter_id").value = r.id;
+    document.getElementById("renter_username").value = r.username;
+    document.getElementById("renter_password").value = r.password;
+    document.getElementById("renter_room_id").value = r.room_id ?? "";
+    document.getElementById("renterError").style.display = "none";
+    document.getElementById("renterModal").style.display = "flex";
+}
+
+async function deleteRenter(id) {
+    if (!confirm("Delete this renter?")) return;
+    const res = await apiPost(`/owner/room/api/renter/delete/${id}`, {});
+    if (res.success) loadRenters();
+    else alert(res.message);
+}
+
+document.getElementById("renterForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("renter_id").value;
+    const body = {
+        username: document.getElementById("renter_username").value,
+        password: document.getElementById("renter_password").value,
+        room_id: document.getElementById("renter_room_id").value
+    };
+    let res;
+    if (id) res = await apiPost(`/owner/room/api/renter/edit/${id}`, body);
+    else res = await apiPost("/owner/room/api/renter/add", body);
+
+    if (res.success) {
+        closeRenterModal();
+        loadRenters();
+    } else {
+        const err = document.getElementById("renterError");
+        err.textContent = res.message;
+        err.style.display = "block";
+    }
+});
+
+(async () => {
+    await loadRooms();
+    await loadRenters();
+})();
+</script>
+{% endblock %}

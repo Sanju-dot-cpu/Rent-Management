@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}My Room{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/room.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "owner/_room_header.html" %}
+
+<div class="tabs">
+    <button class="tab-btn active" data-tab="audit">Room Audit</button>
+    <button class="tab-btn" data-tab="electricity">Electricity Bill</button>
+</div>
+
+<div id="audit" class="tab-content active">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Amount</th>
+                <th>Paid</th>
+                <th>Balance Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="renterAuditBody">
+            <tr><td colspan="7" class="loading">Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="electricity" class="tab-content">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Units</th>
+                <th>Amount</th>
+                <th>Paid</th>
+                <th>Balance Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="renterBillBody">
+            <tr><td colspan="8" class="loading">Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/room_tabs.js') }}"></script>
+<script>
+function fmtDate(d) {
+    if (!d) return "-";
+    const dt = new Date(d);
+    const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${String(dt.getDate()).padStart(2,"0")}-${m[dt.getMonth()]}-${dt.getFullYear()}`;
+}
+
+function statusBadge(status) {
+    if (status === "Pending")
+        return '<span style="color:#dc2626;font-weight:600;">Pending</span>';
+    return '<span style="color:#16a34a;font-weight:600;">Paid</span>';
+}
+
+async function loadRenterData() {
+    const audits = await apiGet("/renter/api/my-audits");
+    const ab = document.getElementById("renterAuditBody");
+    if (audits.success && audits.data.length) {
+        ab.innerHTML = audits.data.map(a => `
+            <tr>
+                <td>${a.month}</td>
+                <td>${fmtDate(a.start_date)}</td>
+                <td>${fmtDate(a.end_date)}</td>
+                <td>₹${a.amount}</td>
+                <td>${fmtDate(a.paid_date)}</td>
+                <td>₹${a.balance_amount}</td>
+                <td>${statusBadge(a.status)}</td>
+            </tr>`).join("");
+    } else {
+        ab.innerHTML = '<tr><td colspan="7" class="loading">No records.</td></tr>';
+    }
+
+    const bills = await apiGet("/renter/api/my-bills");
+    const bb = document.getElementById("renterBillBody");
+    if (bills.success && bills.data.length) {
+        bb.innerHTML = bills.data.map(b => `
+            <tr>
+                <td>${b.month}</td>
+                <td>${fmtDate(b.start_date)}</td>
+                <td>${fmtDate(b.end_date)}</td>
+                <td>${b.units}</td>
+                <td>₹${b.amount}</td>
+                <td>${fmtDate(b.paid_date)}</td>
+                <td>₹${b.balance_amount}</td>
+                <td>${statusBadge(b.status)}</td>
+            </tr>`).join("");
+    } else {
+        bb.innerHTML = '<tr><td colspan="8" class="loading">No records.</td></tr>';
+    }
+}
+loadRenterData();
+</script>
+{% endblock %}

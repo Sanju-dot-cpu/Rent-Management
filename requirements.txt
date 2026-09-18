@@ -1,6 +1,0 @@
-Flask
-pyodbc
-PyJWT
-python-dotenv
-python-dateutil
-reportlab
